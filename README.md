@@ -9,6 +9,12 @@ npm run start-dev
 ## Packaging
 
 ```bash
+npm run pack
+```
+
+This will create a release without an installer.
+
+```bash
 npm run dist
 ```
 
