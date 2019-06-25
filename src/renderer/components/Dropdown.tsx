@@ -28,6 +28,7 @@ interface DropdownState {
     options: Preset[];
     value: Preset | null;
     hasValue: boolean;
+    modDiffs: { deltaMods: Mod[] | undefined; deltaPreset: Mod[] | undefined } | undefined;
 }
 
 class Dropdown extends React.Component<DropdownProps, DropdownState> {
@@ -40,7 +41,8 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
             mods: props.mods,
             options: presets,
             value: null,
-            hasValue: false
+            hasValue: false,
+            modDiffs: undefined
         };
     }
     handleChange = (newValue: Preset, actionMeta: ActionMeta) => {
@@ -65,7 +67,11 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
         this.setState({
             options: presets,
             value: newPreset,
-            hasValue: true
+            hasValue: true,
+            modDiffs: {
+                deltaMods: this.getModDiffs(this.state.mods, newPreset.mods),
+                deltaPreset: this.getModDiffs(newPreset.mods, this.state.mods)
+            }
         });
         this.serializePresets();
     };
@@ -75,14 +81,36 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
     onSavePreset = () => {
         if (presetData.currentPreset) {
             presetData.currentPreset.mods = _.cloneDeep(this.state.mods);
-            this.setState({});
+            this.setState({
+                modDiffs: undefined
+            });
         }
         this.serializePresets();
+    };
+    getModDiffs = (mods_first: Mod[], mods_second: Mod[]): Mod[] | undefined => {
+        if (!mods_first || !mods_second) {
+            return undefined;
+        }
+        return _(mods_first)
+            .differenceBy(mods_second, 'name')
+            .value();
     };
     componentDidUpdate = (prevProps: { mods: Mod[] }) => {
         if (prevProps.mods !== this.props.mods) {
             this.setState(() => {
-                return { mods: this.props.mods };
+                return {
+                    mods: this.props.mods,
+                    modDiffs: {
+                        deltaMods: this.getModDiffs(
+                            this.props.mods,
+                            presetData.currentPreset && presetData.currentPreset.mods
+                        ),
+                        deltaPreset: this.getModDiffs(
+                            presetData.currentPreset && presetData.currentPreset.mods,
+                            this.props.mods
+                        )
+                    }
+                };
             });
         }
     };
@@ -164,6 +192,20 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
                     hasValue={this.state.hasValue}
                     onCreateOption={this.onCreateOption}
                 />
+                <div className="centered-outer">
+                    <div className="centered-inner">
+                        {this.state.modDiffs &&
+                            this.state.modDiffs.deltaMods &&
+                            this.state.modDiffs.deltaMods.map((mod: Mod, index: number) => (
+                                <div key={`item-${index}`}>{mod.name}</div>
+                            ))}
+                        {this.state.modDiffs &&
+                            this.state.modDiffs.deltaPreset &&
+                            this.state.modDiffs.deltaPreset.map((mod: Mod, index: number) => (
+                                <div key={`item-${index}`}>{mod.name}</div>
+                            ))}
+                    </div>
+                </div>
                 <ReactTooltip />
             </div>
         );
