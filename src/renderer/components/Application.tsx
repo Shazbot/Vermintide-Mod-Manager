@@ -61,8 +61,29 @@ class Application extends React.Component<{}, ApplicationState> {
   };
   onPresetSelect = (selected: string) => {
     console.log(selected);
+    const newMods = _.cloneDeep(presetData.currentPreset!.mods);
+    this.state.mods.sort((modFirst, modSecond) => {
+      const presetModFirst = _(newMods).find(mod => mod.name === modFirst.name);
+      const presetModSecond = _(newMods).find(mod => mod.name === modSecond.name);
+
+      if (!presetModFirst && !presetModSecond) {
+        return 0;
+      }
+
+      if (!presetModFirst) {
+        return 1;
+      }
+      if (!presetModSecond) {
+        return -1;
+      }
+
+      const indexSecond = newMods.indexOf(presetModSecond);
+      const indexFirst = newMods.indexOf(presetModFirst);
+
+      return indexFirst - indexSecond;
+    });
     this.setState(() => {
-      return { mods: _.cloneDeep(presetData.currentPreset!.mods) };
+      return { mods: this.state.mods };
     });
   };
   render() {
