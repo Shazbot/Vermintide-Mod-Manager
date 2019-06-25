@@ -7,11 +7,12 @@ import fs from 'fs';
 import { userSettingsPath } from '../../userSettings';
 const SJSON = require('simplified-json');
 
-import presets, { Preset, presetData, presetsPath } from '../../presets';
+import presets, { presetData, presetsPath } from '../../presets';
+import Preset from '../../models/Preset';
 
 import electronSettings from 'electron-settings';
 import { ActionMeta } from 'react-select/lib/types';
-import Mod from './Mod';
+import Mod from '../../models/Mod';
 let settings = electronSettings.get('mod-list');
 if (settings === undefined) {
   settings = [];
@@ -88,7 +89,10 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
     }
     this.serializePresets();
   };
-  getModDiffs = (mods_first: Mod[], mods_second: Mod[]): Mod[] | undefined => {
+  getModDiffs = (
+    mods_first: Mod[] | undefined,
+    mods_second: Mod[] | undefined
+  ): Mod[] | undefined => {
     if (!mods_first || !mods_second) {
       return undefined;
     }

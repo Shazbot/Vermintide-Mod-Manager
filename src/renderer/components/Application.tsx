@@ -6,7 +6,7 @@ import { userSettingsPath } from '../../userSettings';
 const SJSON = require('simplified-json');
 import List from './List';
 import Dropdown from './Dropdown';
-import Mod from './Mod';
+import Mod from '../../models/Mod';
 import { presetData } from '../../presets';
 import psList from 'ps-list';
 import _ from 'lodash';

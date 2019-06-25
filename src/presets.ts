@@ -1,12 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import electron from 'electron';
+import Preset from './models/Preset';
 
-export interface Preset {
-  mods: any;
-  value: string;
-  label: string;
-}
 let presets: Preset[] = [];
 const presetsPath = path.join(electron.remote.app.getPath('userData'), 'presets.json');
 

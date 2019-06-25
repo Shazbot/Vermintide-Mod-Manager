@@ -1,6 +1,6 @@
 import * as React from 'react';
 import lodashUniqueid from 'lodash.uniqueid';
-import Mod from './Mod';
+import Mod from '../../models/Mod';
 import _ from 'lodash';
 
 export interface CheckboxProps {

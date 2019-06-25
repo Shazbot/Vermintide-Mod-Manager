@@ -1,7 +1,7 @@
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 import arrayMove from 'array-move';
 import React, { Component } from 'react';
-import Mod from './Mod';
+import Mod from '../../models/Mod';
 import _ from 'lodash';
 import Checkbox, { CheckboxProps } from './Checkbox';
 
