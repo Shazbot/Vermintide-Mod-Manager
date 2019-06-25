@@ -1,6 +1,6 @@
 export default interface Mod {
-    name: string;
-    enabled: boolean;
-    dependency_error: string;
-    sanctioned: boolean;
+  name: string;
+  enabled: boolean;
+  dependency_error: string;
+  sanctioned: boolean;
 }

@@ -10,12 +10,12 @@ document.body.appendChild(mainElement);
 
 // Render components
 const render = (Component: typeof Application) => {
-    ReactDOM.render(
-        <AppContainer>
-            <Component />
-        </AppContainer>,
-        mainElement
-    );
+  ReactDOM.render(
+    <AppContainer>
+      <Component />
+    </AppContainer>,
+    mainElement
+  );
 };
 
 render(Application);
