@@ -42,7 +42,7 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
             options: presets,
             value: null,
             hasValue: false,
-            modDiffs: undefined
+            modDiffs: undefined,
         };
     }
     handleChange = (newValue: Preset, actionMeta: ActionMeta) => {
@@ -54,13 +54,14 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
         this.onPresetSelect(newValue.value);
 
         this.setState({ value: newValue, hasValue: true });
+        ReactTooltip.rebuild();
     };
     onCreateOption = (newOption: string) => {
         console.log(newOption);
         const newPreset = {
             mods: _.cloneDeep(this.state.mods),
             value: newOption,
-            label: newOption
+            label: newOption,
         };
         presets.push(newPreset);
         presetData.currentPreset = newPreset;
@@ -70,8 +71,8 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
             hasValue: true,
             modDiffs: {
                 deltaMods: this.getModDiffs(this.state.mods, newPreset.mods),
-                deltaPreset: this.getModDiffs(newPreset.mods, this.state.mods)
-            }
+                deltaPreset: this.getModDiffs(newPreset.mods, this.state.mods),
+            },
         });
         this.serializePresets();
     };
@@ -82,7 +83,7 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
         if (presetData.currentPreset) {
             presetData.currentPreset.mods = _.cloneDeep(this.state.mods);
             this.setState({
-                modDiffs: undefined
+                modDiffs: undefined,
             });
         }
         this.serializePresets();
@@ -108,11 +109,12 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
                         deltaPreset: this.getModDiffs(
                             presetData.currentPreset && presetData.currentPreset.mods,
                             this.props.mods
-                        )
-                    }
+                        ),
+                    },
                 };
             });
         }
+        ReactTooltip.rebuild();
     };
     onSaveMods = () => {
         const userSettings = SJSON.parse(fs.readFileSync(userSettingsPath));
@@ -194,16 +196,45 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
                 />
                 <div className="centered-outer">
                     <div className="centered-inner">
-                        {this.state.modDiffs &&
-                            this.state.modDiffs.deltaMods &&
-                            this.state.modDiffs.deltaMods.map((mod: Mod, index: number) => (
-                                <div key={`item-${index}`}>{mod.name}</div>
-                            ))}
-                        {this.state.modDiffs &&
-                            this.state.modDiffs.deltaPreset &&
-                            this.state.modDiffs.deltaPreset.map((mod: Mod, index: number) => (
-                                <div key={`item-${index}`}>{mod.name}</div>
-                            ))}
+                        <div className="preset-mod-diffs">
+                            {this.state.modDiffs &&
+                                this.state.modDiffs.deltaMods &&
+                                this.state.modDiffs.deltaMods.length > 0 &&
+                                [
+                                    <div key={`item-0`}>
+                                        <span
+                                            data-multiline="true"
+                                            data-tip="New mods missing from the preset.<br>Consider updating the preset."
+                                        >
+                                            New mods:
+                                        </span>
+                                    </div>,
+                                ].concat(
+                                    this.state.modDiffs.deltaMods.map((mod: Mod, index: number) => (
+                                        <div key={`item-${index + 1}`}>{mod.name}</div>
+                                    ))
+                                )}
+                        </div>
+                        <div className="preset-mod-diffs">
+                            {this.state.modDiffs &&
+                                this.state.modDiffs.deltaPreset &&
+                                this.state.modDiffs.deltaPreset.length > 0 &&
+                                [
+                                    <div
+                                        data-multiline="true"
+                                        data-tip="Mods saved in the preset but missing from user_settings.<br>Consider updating the preset."
+                                        key={`item-0`}
+                                    >
+                                        Missing mods:
+                                    </div>,
+                                ].concat(
+                                    this.state.modDiffs.deltaPreset.map(
+                                        (mod: Mod, index: number) => (
+                                            <div key={`item-${index}`}>{mod.name}</div>
+                                        )
+                                    )
+                                )}
+                        </div>
                     </div>
                 </div>
                 <ReactTooltip />
