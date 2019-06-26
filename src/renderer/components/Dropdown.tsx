@@ -29,7 +29,7 @@ interface DropdownState {
   options: Preset[];
   value: Preset | null;
   hasValue: boolean;
-  modDiffs: { deltaMods: Mod[] | undefined; deltaPreset: Mod[] | undefined } | undefined;
+  modDiffs: { deltaMods: Mod[] | undefined; deltaPreset: Mod[] | undefined };
 }
 
 class Dropdown extends React.Component<DropdownProps, DropdownState> {
@@ -43,7 +43,7 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
       options: presets,
       value: null,
       hasValue: false,
-      modDiffs: undefined,
+      modDiffs: { deltaMods: undefined, deltaPreset: undefined },
     };
   }
   handleChange = (newValue: Preset, actionMeta: ActionMeta) => {
@@ -84,7 +84,7 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
     if (presetData.currentPreset) {
       presetData.currentPreset.mods = _.cloneDeep(this.state.mods);
       this.setState({
-        modDiffs: undefined,
+        modDiffs: { deltaMods: undefined, deltaPreset: undefined },
       });
     }
     this.serializePresets();
@@ -101,19 +101,26 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
       .value();
   };
   componentDidUpdate = (prevProps: { mods: Mod[] }) => {
-    if (prevProps.mods !== this.props.mods) {
+    const deltaMods = this.getModDiffs(
+      this.props.mods,
+      presetData.currentPreset && presetData.currentPreset.mods
+    );
+
+    const deltaPreset = this.getModDiffs(
+      presetData.currentPreset && presetData.currentPreset.mods,
+      this.props.mods
+    );
+
+    if (
+      !_.isEqual(_.sortBy(deltaMods), _.sortBy(this.state.modDiffs.deltaMods)) ||
+      !_.isEqual(_.sortBy(deltaPreset), _.sortBy(this.state.modDiffs.deltaPreset))
+    ) {
       this.setState(() => {
         return {
           mods: this.props.mods,
           modDiffs: {
-            deltaMods: this.getModDiffs(
-              this.props.mods,
-              presetData.currentPreset && presetData.currentPreset.mods
-            ),
-            deltaPreset: this.getModDiffs(
-              presetData.currentPreset && presetData.currentPreset.mods,
-              this.props.mods
-            ),
+            deltaMods,
+            deltaPreset,
           },
         };
       });

@@ -143,6 +143,7 @@
         "@types/react-tooltip": "^3.9.2",
         "array-move": "^2.1.0",
         "electron-settings": "^3.2.0",
+        "glob": "^7.1.4",
         "lodash": "^4.17.11",
         "lodash.uniqueid": "^4.0.1",
         "ps-list": "^6.3.0",

@@ -82,6 +82,12 @@ class Application extends React.Component<{}, ApplicationState> {
 
       return indexFirst - indexSecond;
     });
+    _(newMods).forEach(presetMod => {
+      const mod = _(this.state.mods).find(mod => mod.id === presetMod.id);
+      if (mod) {
+        mod.enabled = presetMod.enabled;
+      }
+    });
     this.setState(() => {
       return { mods: this.state.mods };
     });

@@ -3,4 +3,5 @@ export default interface Mod {
   enabled: boolean;
   dependency_error: string;
   sanctioned: boolean;
+  id: string;
 }
