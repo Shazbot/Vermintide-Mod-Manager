@@ -101,6 +101,14 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
       .value();
   };
   componentDidUpdate = (prevProps: { mods: Mod[] }) => {
+    if (this.props.mods !== this.state.mods) {
+      this.setState(() => {
+        return {
+          mods: this.props.mods,
+        };
+      });
+    }
+
     const deltaMods = this.getModDiffs(
       this.props.mods,
       presetData.currentPreset && presetData.currentPreset.mods
@@ -117,7 +125,6 @@ class Dropdown extends React.Component<DropdownProps, DropdownState> {
     ) {
       this.setState(() => {
         return {
-          mods: this.props.mods,
           modDiffs: {
             deltaMods,
             deltaPreset,

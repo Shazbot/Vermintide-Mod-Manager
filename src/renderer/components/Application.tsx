@@ -59,6 +59,11 @@ class Application extends React.Component<{}, ApplicationState> {
       return { mods: this.getMods() };
     });
   };
+  setMods = (mods: Mod[]) => {
+    this.setState(() => {
+      return { mods };
+    });
+  };
   onPresetSelect = (selected: string) => {
     console.log(selected);
     const newMods = _.cloneDeep(presetData.currentPreset!.mods);
@@ -96,7 +101,7 @@ class Application extends React.Component<{}, ApplicationState> {
     return (
       <div>
         <div className="list">
-          <List mods={this.state.mods} />
+          <List mods={this.state.mods} setMods={this.setMods} />
         </div>
         <div className="dropdown">
           <Dropdown

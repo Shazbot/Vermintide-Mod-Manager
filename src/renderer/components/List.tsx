@@ -35,6 +35,7 @@ const SortableList = SortableContainer((props: SortableListProps) => {
 
 interface SortableComponentProps {
   mods: Mod[];
+  setMods: (mods: Mod[]) => void;
 }
 interface SortableComponentState {
   mods: Mod[];
@@ -45,8 +46,10 @@ interface SortableComponentState {
 class SortableComponent extends Component<SortableComponentProps, SortableComponentState> {
   selectAllId: string = 'selectAllId';
   selectSanctionedModsId: string = 'selectSanctionedModsId';
+  setMods: (mods: Mod[]) => void;
   constructor(props: any) {
     super(props);
+    this.setMods = props.setMods;
     this.state = {
       mods: props.mods,
       isSelectAllChecked: this.areAllModsEnabled(props.mods),
@@ -87,6 +90,7 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
         isSelectSanctionedModsChecked: this.areAllSanctionedModsEnabled(),
       };
     });
+    this.setMods(this.state.mods);
   };
   handleSelectAllChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
