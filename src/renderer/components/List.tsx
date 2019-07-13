@@ -9,12 +9,13 @@ require('./List.scss');
 
 const SortableItem = SortableElement((props: CheckboxProps) => (
   <li>
-    <Checkbox onModToggled={props.onModToggled} mod={props.mod} />
+    <Checkbox {...props} />
   </li>
 ));
 
 interface SortableListProps {
   mods: Mod[];
+  fitlerMatchingMods: Mod[];
   onModToggled: (mod: Mod) => void;
 }
 
@@ -23,9 +24,12 @@ const SortableList = SortableContainer((props: SortableListProps) => {
     <ul className="mod-list">
       {props.mods.map((mod: Mod, index: number) => (
         <SortableItem
+          isFilterMatch={
+            props.fitlerMatchingMods.find(filteredMod => filteredMod.id === mod.id) !== undefined
+          }
           onModToggled={props.onModToggled}
-          key={`item-${index}`}
           index={index}
+          key={`item-${index}`}
           mod={mod}
         />
       ))}
@@ -41,6 +45,7 @@ interface SortableComponentState {
   mods: Mod[];
   isSelectAllChecked: boolean;
   isSelectSanctionedModsChecked: boolean;
+  fitlerMatchingMods: Mod[];
 }
 
 class SortableComponent extends Component<SortableComponentProps, SortableComponentState> {
@@ -54,6 +59,7 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
       mods: props.mods,
       isSelectAllChecked: this.areAllModsEnabled(props.mods),
       isSelectSanctionedModsChecked: this.areAllSanctionedModsEnabled(props.mods),
+      fitlerMatchingMods: [],
     };
   }
   areAllModsEnabled = (mods?: Mod[]) => {
@@ -127,6 +133,23 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
       };
     });
   };
+  filterList = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const target = event.target;
+    const text = target.value;
+
+    let matches: Mod[] = [];
+    if (text) {
+      matches = _.filter(this.state.mods, mod => {
+        return mod.name.toLowerCase().indexOf(text.toLowerCase()) !== -1;
+      });
+    }
+
+    this.setState(() => {
+      return {
+        fitlerMatchingMods: matches,
+      };
+    });
+  };
   onModToggled = (mod: Mod) => {
     this.setState((state: SortableComponentState) => {
       return {
@@ -156,9 +179,13 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
           />
           <label htmlFor={this.selectSanctionedModsId}>Select Sanctioned</label>
         </div>
+        <div className="filter-mods">
+          <input type="text" placeholder="Search" onChange={this.filterList} />
+        </div>
         <SortableList
           onModToggled={this.onModToggled}
           mods={this.state.mods}
+          fitlerMatchingMods={this.state.fitlerMatchingMods}
           onSortEnd={this.onSortEnd}
         />
       </div>
