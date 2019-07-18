@@ -106,7 +106,7 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
       mod.enabled = checked;
     });
 
-    this.setState((state: SortableComponentState) => {
+    this.setState(() => {
       return {
         mods: this.state.mods,
         isSelectAllChecked: checked,
@@ -126,7 +126,7 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
         mod.enabled = checked;
       });
 
-    this.setState((state: SortableComponentState) => {
+    this.setState(() => {
       return {
         isSelectAllChecked: this.areAllModsEnabled(),
         isSelectSanctionedModsChecked: checked,
@@ -150,8 +150,8 @@ class SortableComponent extends Component<SortableComponentProps, SortableCompon
       };
     });
   };
-  onModToggled = (mod: Mod) => {
-    this.setState((state: SortableComponentState) => {
+  onModToggled = () => {
+    this.setState(() => {
       return {
         isSelectAllChecked: this.areAllModsEnabled(),
         isSelectSanctionedModsChecked: this.areAllSanctionedModsEnabled(),
