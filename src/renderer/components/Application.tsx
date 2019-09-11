@@ -10,6 +10,8 @@ import Mod from '../../models/Mod';
 import { presetData } from '../../presets';
 import psList from 'ps-list';
 import _ from 'lodash';
+import store from '../store';
+import { RELOAD_MODS } from '../actions/modList/reloadMods';
 
 require('./Application.scss');
 
@@ -24,9 +26,10 @@ class Application extends React.Component<{}, ApplicationState> {
 
     fs.watch(userSettingsPath, {}, (_, filename) => {
       if (filename) {
-        this.setState(() => {
-          return { mods: this.getMods() };
-        });
+        store.dispatch({ type: RELOAD_MODS });
+        // this.setState(() => {
+        //   return { mods: this.getMods() };
+        // });
       }
     });
     this.state = {
@@ -45,7 +48,7 @@ class Application extends React.Component<{}, ApplicationState> {
         });
       })
       .catch(err => {
-        console.error(err);
+        // console.error(err);
       })
       .finally(() => {
         setTimeout(this.checkProcesses, 1500);
@@ -53,16 +56,6 @@ class Application extends React.Component<{}, ApplicationState> {
   };
   getMods = () => {
     return SJSON.parse(fs.readFileSync(userSettingsPath, 'utf8')).mods;
-  };
-  onReloadMods = () => {
-    this.setState(() => {
-      return { mods: this.getMods() };
-    });
-  };
-  setMods = (mods: Mod[]) => {
-    this.setState(() => {
-      return { mods };
-    });
   };
   onPresetSelect = (selected: string) => {
     console.log(selected);
@@ -101,14 +94,10 @@ class Application extends React.Component<{}, ApplicationState> {
     return (
       <div>
         <div className="list">
-          <List mods={this.state.mods} setMods={this.setMods} />
+          <List />
         </div>
         <div className="dropdown">
-          <Dropdown
-            mods={this.state.mods}
-            onReloadMods={this.onReloadMods}
-            onPresetSelect={this.onPresetSelect}
-          />
+          <Dropdown onPresetSelect={this.onPresetSelect} />
         </div>
         {this.state.isLauncherRunning && (
           <div className="launcher-warning">
