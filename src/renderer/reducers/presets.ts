@@ -1,20 +1,18 @@
-import { SELECT_PRESET } from './../actions/presets/selectPreset';
-import { UPDATE_PRESET } from './../actions/presets/updatePreset';
-import { CreatePresetAction, CREATE_PRESET } from './../actions/presets/createPreset';
-import { Reducer } from 'redux';
 import fs from 'fs';
 import _ from 'lodash';
-import { PresetsState } from '../types/presetsState';
+import { Reducer } from 'redux';
+import Preset from '../../models/Preset';
 import presets, { presetsPath } from '../../presets';
 import { PresetsAction } from '../actions/presets';
-import store from '../store';
-import Preset from '../../models/Preset';
 import { DELETE_PRESET } from '../actions/presets/deletePreset';
-import { RELOAD_MODS } from '../actions/modList/reloadMods';
+import { PresetsState } from '../types/presetsState';
+import { CREATE_PRESET } from './../actions/presets/createPreset';
+import { SELECT_PRESET } from './../actions/presets/selectPreset';
+import { UPDATE_PRESET } from './../actions/presets/updatePreset';
 
 export const defaultState: PresetsState = {
   presets,
-  currentPreset: presets[0],
+  currentPreset: null,
 };
 
 const serializePresets = (presets: Preset[]) => {
@@ -25,30 +23,32 @@ const presetsReducer: Reducer<PresetsState> = (state = defaultState, action: Pre
   console.log(action.type);
   switch (action.type) {
     case CREATE_PRESET: {
-      const presets = state.presets.concat([
-        {
-          mods: _.cloneDeep(store.getState()!.modList.mods),
-          id: action.value,
-        },
-      ]);
+      const newPreset = {
+        mods: _.cloneDeep(action.mods),
+        id: action.value,
+      };
+      const presets = state.presets.concat([newPreset]);
+
       serializePresets(presets);
       return {
         ...state,
         presets,
+        currentPreset: newPreset,
       };
     }
     case DELETE_PRESET: {
-      const presets = _.filter((preset: Preset) => {
+      const presets = _.filter(state.presets, (preset: Preset) => {
         return preset !== state.currentPreset;
       });
       serializePresets(presets);
       return {
         ...state,
         presets,
+        currentPreset: null,
       };
     }
     case UPDATE_PRESET:
-      state.currentPreset!.mods = _.cloneDeep(store.getState()!.modList.mods);
+      state.currentPreset!.mods = _.cloneDeep(action.mods);
       serializePresets(state.presets);
       return { ...state };
 

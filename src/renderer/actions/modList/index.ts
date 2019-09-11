@@ -1,3 +1,4 @@
+import { ApplyPresetAction } from './applyPreset';
 import { ReloadModsAction } from './reloadMods';
 import { ModSortedAction } from './modSorted';
 import { ToggleSelectSanctionedModsAction } from './toggleSelectSanctioned';
@@ -13,4 +14,5 @@ export type ModListAction =
   | ToggleModAction
   | ReloadModsAction
   | SaveModsAction
+  | ApplyPresetAction
   | SetModFilterAction;

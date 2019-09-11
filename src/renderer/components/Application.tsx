@@ -1,22 +1,17 @@
-import { hot } from 'react-hot-loader/root';
-import * as React from 'react';
 import fs from 'fs';
-import { userSettingsPath } from '../../userSettings';
-
-const SJSON = require('simplified-json');
-import List from './List';
-import Dropdown from './Dropdown';
-import Mod from '../../models/Mod';
-import { presetData } from '../../presets';
-import psList from 'ps-list';
 import _ from 'lodash';
-import store from '../store';
+import psList from 'ps-list';
+import * as React from 'react';
+import { hot } from 'react-hot-loader/root';
+import { userSettingsPath } from '../../userSettings';
 import { RELOAD_MODS } from '../actions/modList/reloadMods';
+import store from '../store';
+import Dropdown from './Dropdown';
+import List from './List';
 
 require('./Application.scss');
 
 interface ApplicationState {
-  mods: Mod[];
   isLauncherRunning: boolean;
 }
 
@@ -27,13 +22,9 @@ class Application extends React.Component<{}, ApplicationState> {
     fs.watch(userSettingsPath, {}, (_, filename) => {
       if (filename) {
         store.dispatch({ type: RELOAD_MODS });
-        // this.setState(() => {
-        //   return { mods: this.getMods() };
-        // });
       }
     });
     this.state = {
-      mods: this.getMods(),
       isLauncherRunning: false,
     };
 
@@ -54,42 +45,6 @@ class Application extends React.Component<{}, ApplicationState> {
         setTimeout(this.checkProcesses, 1500);
       });
   };
-  getMods = () => {
-    return SJSON.parse(fs.readFileSync(userSettingsPath, 'utf8')).mods;
-  };
-  onPresetSelect = (selected: string) => {
-    console.log(selected);
-    const newMods = _.cloneDeep(presetData.currentPreset!.mods);
-    this.state.mods.sort((modFirst, modSecond) => {
-      const presetModFirst = _(newMods).find(mod => mod.name === modFirst.name);
-      const presetModSecond = _(newMods).find(mod => mod.name === modSecond.name);
-
-      if (!presetModFirst && !presetModSecond) {
-        return 0;
-      }
-
-      if (!presetModFirst) {
-        return 1;
-      }
-      if (!presetModSecond) {
-        return -1;
-      }
-
-      const indexSecond = newMods.indexOf(presetModSecond);
-      const indexFirst = newMods.indexOf(presetModFirst);
-
-      return indexFirst - indexSecond;
-    });
-    _(newMods).forEach(presetMod => {
-      const mod = _(this.state.mods).find(mod => mod.id === presetMod.id);
-      if (mod) {
-        mod.enabled = presetMod.enabled;
-      }
-    });
-    this.setState(() => {
-      return { mods: this.state.mods };
-    });
-  };
   render() {
     return (
       <div>
@@ -97,7 +52,7 @@ class Application extends React.Component<{}, ApplicationState> {
           <List />
         </div>
         <div className="dropdown">
-          <Dropdown onPresetSelect={this.onPresetSelect} />
+          <Dropdown />
         </div>
         {this.state.isLauncherRunning && (
           <div className="launcher-warning">

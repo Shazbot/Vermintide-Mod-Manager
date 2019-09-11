@@ -1,20 +1,19 @@
-import { SortableContainer, SortableElement, SortEndHandler } from 'react-sortable-hoc';
 import React, { Component } from 'react';
-import Mod from '../../models/Mod';
-import _ from 'lodash';
-import Checkbox, { ModCheckboxOwnProps } from './Checkbox';
 import { connect } from 'react-redux';
-import { toggleSelectAll, ToggleSelectAllAction } from '../actions/modList/toggleSelectAll';
+import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 import { Dispatch } from 'redux';
-import { RootState } from '../reducers';
+import Mod from '../../models/Mod';
 import { ModListAction } from '../actions/modList';
-import {
-  ToggleSelectSanctionedModsAction,
-  toggleSelectSanctionedMods,
-} from '../actions/modList/toggleSelectSanctioned';
-import { ModSortedAction, modSorted } from '../actions/modList/modSorted';
-import store from '../store';
+import { modSorted, ModSortedAction } from '../actions/modList/modSorted';
 import { SET_MOD_FILTER } from '../actions/modList/setModFilter';
+import { toggleSelectAll, ToggleSelectAllAction } from '../actions/modList/toggleSelectAll';
+import {
+  toggleSelectSanctionedMods,
+  ToggleSelectSanctionedModsAction,
+} from '../actions/modList/toggleSelectSanctioned';
+import { RootState } from '../reducers';
+import store from '../store';
+import Checkbox, { ModCheckboxOwnProps } from './Checkbox';
 
 require('./List.scss');
 
@@ -60,91 +59,14 @@ interface SortableComponentState {
 
 type ModListProps = ModListStateProps & ModListDispatchProps & ModListOwnProps;
 
-const areAllModsEnabled = (mods?: Mod[]) => {
-  if (!mods) return false;
-
-  return _(mods).reduce((result, mod) => {
-    return result && mod.enabled;
-  }, true);
-};
-
 class SortableComponent extends Component<ModListProps, SortableComponentState> {
   selectAllId: string = 'selectAllId';
   selectSanctionedModsId: string = 'selectSanctionedModsId';
-  setMods: (mods: Mod[]) => void;
   constructor(props: any) {
     super(props);
-    this.setMods = props.setMods;
-    // this.state = {
-    //   mods: [],
-    //   isSelectAllChecked: areAllModsEnabled(props.mods),
-    //   isSelectSanctionedModsChecked: this.areAllSanctionedModsEnabled(props.mods),
-    //   fitlerMatchingMods: [],
-    // };
   }
-
-  areAllSanctionedModsEnabled = (mods?: Mod[]) => {
-    // return _(mods || this.props.mods)
-    //   .filter(mod => {
-    //     return mod.sanctioned;
-    //   })
-    //   .reduce((result, mod) => {
-    //     return result && mod.enabled;
-    //   }, true);
-  };
-  componentDidUpdate = (prevProps: { mods: Mod[] }) => {
-    // if (prevProps.mods !== this.props.mods) {
-    //   this.setState(() => {
-    //     return {
-    //       mods: this.props.mods,
-    //       isSelectAllChecked: areAllModsEnabled(),
-    //       isSelectSanctionedModsChecked: this.areAllSanctionedModsEnabled(),
-    //     };
-    //   });
-    // }
-  };
   onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
-    // this.setState(() => {
-    //   arrayMove.mutate(this.props.mods, oldIndex, newIndex);
-    //   return {
-    //     mods: this.props.mods,
-    //     isSelectAllChecked: areAllModsEnabled(),
-    //     isSelectSanctionedModsChecked: this.areAllSanctionedModsEnabled(),
-    //   };
-    // });
-    // this.setMods(this.props.mods);
     this.props.modSorted(oldIndex, newIndex);
-  };
-  handleSelectAllChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // const target = event.target;
-    // const checked = target.checked;
-    // _(this.props.mods).forEach(mod => {
-    //   mod.enabled = checked;
-    // });
-    // this.setState(() => {
-    //   return {
-    //     mods: this.props.mods,
-    //     isSelectAllChecked: checked,
-    //     isSelectSanctionedModsChecked: checked,
-    //   };
-    // });
-  };
-  handleSelectSanctionedModsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // const target = event.target;
-    // const checked = target.checked;
-    // _(this.props.mods)
-    //   .filter(mod => {
-    //     return mod.sanctioned;
-    //   })
-    //   .forEach(mod => {
-    //     mod.enabled = checked;
-    //   });
-    // this.setState(() => {
-    //   return {
-    //     isSelectAllChecked: areAllModsEnabled(),
-    //     isSelectSanctionedModsChecked: checked,
-    //   };
-    // });
   };
   filterList = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
@@ -154,17 +76,6 @@ class SortableComponent extends Component<ModListProps, SortableComponentState> 
       type: SET_MOD_FILTER,
       value: text,
     });
-    // let matches: Mod[] = [];
-    // if (text) {
-    //   matches = _.filter(this.props.mods, mod => {
-    //     return mod.name.toLowerCase().indexOf(text.toLowerCase()) !== -1;
-    //   });
-    // }
-    // this.setState(() => {
-    //   return {
-    //     fitlerMatchingMods: matches,
-    //   };
-    // });
   };
   render() {
     return (

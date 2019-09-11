@@ -10,7 +10,5 @@ if (fs.existsSync(presetsPath)) {
   presets = JSON.parse(fs.readFileSync(presetsPath, 'utf8'));
 }
 
-const presetData = { currentPreset: undefined } as { currentPreset: Preset | undefined };
-
-export { presetData, presetsPath };
+export { presetsPath };
 export default presets;

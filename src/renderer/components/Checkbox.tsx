@@ -1,23 +1,17 @@
-import * as React from 'react';
 import lodashUniqueid from 'lodash.uniqueid';
-import Mod from '../../models/Mod';
-import _ from 'lodash';
+import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import Mod from '../../models/Mod';
 import {
   ModCheckboxAction,
   toggleMod,
   ToggleModAction,
   TOGGLE_MOD,
 } from '../actions/modCheckbox/toggleMod';
-import { Dispatch } from 'redux';
 import { RootState } from '../reducers';
 import store from '../store';
 
-// export interface CheckboxProps {
-//   mod: Mod;
-//   onModToggled: (mod: Mod) => void;
-//   isFilterMatch: boolean;
-// }
 export interface CheckboxState {
   mod: Mod;
   isFilterMatch: boolean;
@@ -45,36 +39,18 @@ export type CheckboxProps = ModCheckboxStateProps & ModCheckboxDispatchProps & M
 
 class Checkbox extends React.Component<CheckboxProps, CheckboxState> {
   id: string;
-  // state: CheckboxState;
   isFilterMatch: boolean;
   constructor(props: CheckboxProps) {
     super(props);
-    // this.state = { mod: props.mod, isFilterMatch: props.isFilterMatch };
     this.id = lodashUniqueid('mod-checkbox-');
-    // this.onModToggled = props.onModToggled;
     this.isFilterMatch = props.isFilterMatch;
   }
-  // onModToggled: (mod: Mod) => void;
 
-  // componentDidUpdate = (prevProps: CheckboxProps) => {
-  //   if (this.props !== prevProps) {
-  //     this.setState(() => {
-  //       return this.props;
-  //     });
-  //   }
-  // };
-
-  handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  handleInputChange = () => {
     store.dispatch({
       type: TOGGLE_MOD,
       id: this.props.id,
     });
-
-    // this.state.mod.enabled = checked;
-    // this.setState(() => {
-    //   return { mod: this.state.mod };
-    // });
-    // this.onModToggled(this.state.mod);
   };
 
   render() {

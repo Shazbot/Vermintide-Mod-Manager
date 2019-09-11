@@ -2,9 +2,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 import { Provider } from 'react-redux';
-import store from './store';
-
 import Application from './components/Application';
+import store from './store';
 
 // Create main element
 const mainElement = document.createElement('div');

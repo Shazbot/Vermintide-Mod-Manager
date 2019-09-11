@@ -1,20 +1,21 @@
-import { SET_MOD_FILTER } from './../actions/modList/setModFilter';
 const arrayMove = require('array-move');
-import { MOD_SORTED } from './../actions/modList/modSorted';
-import { TOGGLE_SELECT_SANCTIONED_MODS } from './../actions/modList/toggleSelectSanctioned';
-import { TOGGLE_SELECT_ALL } from '../actions/modList/toggleSelectAll';
-import { Reducer } from 'redux';
 const SJSON = require('simplified-json');
-import getMods from '../../getMods';
 import fs from 'fs';
-import { ModListAction } from '../actions/modList';
 import _ from 'lodash';
-import { TOGGLE_MOD } from '../actions/modCheckbox/toggleMod';
-import { ModListState } from '../types/modListState';
-import { RELOAD_MODS } from '../actions/modList/reloadMods';
-import { SAVE_MODS } from '../actions/modList/saveMods';
+import { Reducer } from 'redux';
+import getMods from '../../getMods';
 import Mod from '../../models/Mod';
 import { userSettingsPath } from '../../userSettings';
+import { TOGGLE_MOD } from '../actions/modCheckbox/toggleMod';
+import { ModListAction } from '../actions/modList';
+import { APPLY_PRESET } from '../actions/modList/applyPreset';
+import { RELOAD_MODS } from '../actions/modList/reloadMods';
+import { SAVE_MODS } from '../actions/modList/saveMods';
+import { TOGGLE_SELECT_ALL } from '../actions/modList/toggleSelectAll';
+import { ModListState } from '../types/modListState';
+import { MOD_SORTED } from './../actions/modList/modSorted';
+import { SET_MOD_FILTER } from './../actions/modList/setModFilter';
+import { TOGGLE_SELECT_SANCTIONED_MODS } from './../actions/modList/toggleSelectSanctioned';
 
 export const defaultState: ModListState = {
   mods: getMods(),
@@ -37,6 +38,40 @@ const modListReducer: Reducer<ModListState> = (state = defaultState, action: Mod
       return {
         ...state,
         mods: _.map(state.mods, mod => (mod.id === id && { ...mod, enabled: !mod.enabled }) || mod),
+      };
+    }
+    case APPLY_PRESET: {
+      const presetMods = action.preset.mods;
+      const mods = _.cloneDeep(state.mods);
+      mods.sort((modFirst, modSecond) => {
+        const presetModFirst = _(presetMods).find(mod => mod.name === modFirst.name);
+        const presetModSecond = _(presetMods).find(mod => mod.name === modSecond.name);
+
+        if (!presetModFirst && !presetModSecond) {
+          return 0;
+        }
+
+        if (!presetModFirst) {
+          return 1;
+        }
+        if (!presetModSecond) {
+          return -1;
+        }
+
+        const indexSecond = presetMods.indexOf(presetModSecond);
+        const indexFirst = presetMods.indexOf(presetModFirst);
+
+        return indexFirst - indexSecond;
+      });
+      _(presetMods).forEach(presetMod => {
+        const mod = _(mods).find(mod => mod.id === presetMod.id);
+        if (mod) {
+          mod.enabled = presetMod.enabled;
+        }
+      });
+      return {
+        ...state,
+        mods,
       };
     }
     case SET_MOD_FILTER: {

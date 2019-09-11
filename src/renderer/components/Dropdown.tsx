@@ -1,29 +1,24 @@
-import React from 'react';
-import _ from 'lodash';
-import ReactTooltip from 'react-tooltip';
-// @ts-ignore
-import Creatable from 'react-select/creatable';
-import fs from 'fs';
-import { userSettingsPath } from '../../userSettings';
-const SJSON = require('simplified-json');
-
-import presets, { presetData, presetsPath } from '../../presets';
-import Preset from '../../models/Preset';
-
 import electronSettings from 'electron-settings';
-import { ActionMeta } from 'react-select/lib/types';
+import _ from 'lodash';
+import React from 'react';
+import { connect } from 'react-redux';
+import Creatable from 'react-select/creatable';
+import { ActionMeta, ValueType } from 'react-select/src/types';
+import ReactTooltip from 'react-tooltip';
+import { Dispatch } from 'redux';
 import Mod from '../../models/Mod';
-import { RootState } from '../reducers';
+import Preset from '../../models/Preset';
+import { APPLY_PRESET } from '../actions/modList/applyPreset';
+import { RELOAD_MODS } from '../actions/modList/reloadMods';
+import { SAVE_MODS } from '../actions/modList/saveMods';
 import { PresetsAction } from '../actions/presets';
 import { createPreset, CreatePresetAction } from '../actions/presets/createPreset';
 import { deletePreset, DeletePresetAction } from '../actions/presets/deletePreset';
-import { updatePreset, UpdatePresetAction } from '../actions/presets/updatePreset';
-import { RELOAD_MODS } from '../actions/modList/reloadMods';
-import { Dispatch } from 'redux';
-import { connect } from 'react-redux';
-import store from '../store';
-import { SAVE_MODS } from '../actions/modList/saveMods';
 import { selectPreset, SelectPresetAction } from '../actions/presets/selectPreset';
+import { updatePreset, UpdatePresetAction } from '../actions/presets/updatePreset';
+import { RootState } from '../reducers';
+import store from '../store';
+
 let settings = electronSettings.get('mod-list');
 if (settings === undefined) {
   settings = [];
@@ -37,15 +32,13 @@ export interface DropdownProps {
 }
 
 interface PresetsDispatchProps {
-  createPreset: (id: string) => CreatePresetAction;
-  updatePreset: () => UpdatePresetAction;
+  createPreset: (id: string, mods: Mod[]) => CreatePresetAction;
+  updatePreset: (mods: Mod[]) => UpdatePresetAction;
   selectPreset: (id: string) => SelectPresetAction;
   deletePreset: () => DeletePresetAction;
 }
 
-export interface PresetsOwnProps {
-  onPresetSelect: (selected: string) => void;
-}
+export interface PresetsOwnProps {}
 
 export interface PresetsStateProps {
   mods: Mod[];
@@ -57,70 +50,34 @@ export interface PresetsStateProps {
 type PresetsProps = PresetsStateProps & PresetsDispatchProps & PresetsOwnProps;
 
 interface DropdownState {
-  mods: Mod[];
-  options: Preset[];
-  value: Preset | null;
-  hasValue: boolean;
+  isPresetSelected: boolean;
   modDiffs: { deltaMods: Mod[] | undefined; deltaPreset: Mod[] | undefined };
 }
 
 class Dropdown extends React.Component<PresetsProps, DropdownState> {
-  onPresetSelect: (selected: string) => void;
   constructor(props: PresetsProps) {
     super(props);
-    this.onPresetSelect = props.onPresetSelect;
-    // this.onReloadMods = props.onReloadMods;
     this.state = {
-      mods: props.mods,
-      options: presets,
-      value: null,
-      hasValue: false,
       modDiffs: { deltaMods: undefined, deltaPreset: undefined },
+      isPresetSelected: props.currentPreset !== null,
     };
   }
-  handleChange = (newValue: Preset, actionMeta: ActionMeta) => {
+  handleChange = (selectedValue: ValueType<Preset>, actionMeta: ActionMeta) => {
     console.group('Value Changed');
-    console.log(newValue);
+    console.log(selectedValue);
     console.log(`action: ${actionMeta.action}`);
     console.groupEnd();
-    presetData.currentPreset = newValue;
-    this.onPresetSelect(newValue.id);
+    const newValue = selectedValue as Preset;
     this.props.selectPreset(newValue.id);
+    store.dispatch({
+      type: APPLY_PRESET,
+      preset: this.props.currentPreset,
+    });
 
-    this.setState({ value: newValue, hasValue: true });
     ReactTooltip.rebuild();
   };
   onCreateOption = (newOption: string) => {
-    this.props.createPreset(newOption);
-    // console.log(newOption);
-    // const newPreset = {
-    //   mods: _.cloneDeep(this.state.mods),
-    //   id: newOption,
-    // };
-    // presets.push(newPreset);
-    // presetData.currentPreset = newPreset;
-    // this.setState({
-    //   options: presets,
-    //   value: newPreset,
-    //   hasValue: true,
-    //   modDiffs: {
-    //     deltaMods: this.getModDiffs(this.state.mods, newPreset.mods),
-    //     deltaPreset: this.getModDiffs(newPreset.mods, this.state.mods),
-    //   },
-    // });
-    // this.serializePresets();
-  };
-  serializePresets = () => {
-    // fs.writeFileSync(presetsPath, JSON.stringify(presets), 'utf8');
-  };
-  onSavePreset = () => {
-    if (presetData.currentPreset) {
-      presetData.currentPreset.mods = _.cloneDeep(this.state.mods);
-      this.setState({
-        modDiffs: { deltaMods: undefined, deltaPreset: undefined },
-      });
-    }
-    this.serializePresets();
+    this.props.createPreset(newOption, store.getState()!.modList.mods);
   };
   getModDiffs = (
     mods_first: Mod[] | undefined,
@@ -134,13 +91,13 @@ class Dropdown extends React.Component<PresetsProps, DropdownState> {
       .value();
   };
   componentDidUpdate = (prevProps: PresetsProps) => {
-    // if (this.props.mods !== this.state.mods) {
-    //   this.setState(() => {
-    //     return {
-    //       mods: this.props.mods,
-    //     };
-    //   });
-    // }
+    if (prevProps.currentPreset !== this.props.currentPreset) {
+      this.setState(() => {
+        return {
+          isPresetSelected: this.props.currentPreset !== null,
+        };
+      });
+    }
 
     const deltaMods = this.getModDiffs(this.props.mods, prevProps.mods);
 
@@ -159,40 +116,22 @@ class Dropdown extends React.Component<PresetsProps, DropdownState> {
         };
       });
     }
+
     ReactTooltip.rebuild();
   };
   onSaveMods = () => {
     store.dispatch({
       type: SAVE_MODS,
     });
-    // const userSettings = SJSON.parse(fs.readFileSync(userSettingsPath));
-    // userSettings.mods = this.state.mods;
-    // fs.writeFileSync(userSettingsPath, SJSON.stringify(userSettings), 'utf8');
   };
   onReloadMods = () => {
     store.dispatch({
       type: RELOAD_MODS,
     });
-    // this.onReloadMods();
   };
   onDeletePreset = () => {
     this.props.deletePreset();
-    // if (presetData.currentPreset) {
-    //   presets.splice(
-    //     0,
-    //     presets.length,
-    //     ...presets.filter(val => {
-    //       return val !== presetData.currentPreset;
-    //     })
-    //   );
-    //   presetData.currentPreset = undefined;
-    // }
-    // this.setState({ value: null, options: presets, hasValue: false });
-    // this.serializePresets();
     ReactTooltip.hide();
-  };
-  isPresetSelected = () => {
-    return presetData.currentPreset !== undefined;
   };
   getOptionLabel = (preset: Preset | { value: string; label: string }) => {
     if ('id' in preset) {
@@ -201,12 +140,11 @@ class Dropdown extends React.Component<PresetsProps, DropdownState> {
 
     return preset.label;
   };
-  getOptionValue = (preset: Preset | { value: string; label: string }) => {
-    if ('id' in preset) {
-      return this.props.presets.indexOf(preset) + 1;
-    }
-
-    return preset.value;
+  getOptionValue = (preset: Preset) => {
+    return preset.id;
+  };
+  onUpdatePreset = () => {
+    this.props.updatePreset(store.getState()!.modList.mods);
   };
   render() {
     return (
@@ -234,15 +172,15 @@ class Dropdown extends React.Component<PresetsProps, DropdownState> {
           <div className="centered-inner">
             <button
               data-tip="Update current preset."
-              onClick={this.props.updatePreset}
-              disabled={!this.isPresetSelected()}
+              onClick={this.onUpdatePreset}
+              disabled={!this.state.isPresetSelected}
               className="save-preset"
             >
               Update Preset
             </button>
             <button
               data-tip="Delete current preset."
-              disabled={!this.isPresetSelected()}
+              disabled={!this.state.isPresetSelected}
               onClick={this.onDeletePreset}
               className="delete-preset"
             >
@@ -256,8 +194,8 @@ class Dropdown extends React.Component<PresetsProps, DropdownState> {
           defaultValue={undefined}
           onChange={this.handleChange}
           options={this.props.presets}
-          value={this.state.value}
-          hasValue={this.state.hasValue}
+          value={this.props.currentPreset}
+          hasValue={this.state.isPresetSelected}
           onCreateOption={this.onCreateOption}
           getOptionLabel={this.getOptionLabel}
           getOptionValue={this.getOptionValue}
@@ -312,14 +250,14 @@ class Dropdown extends React.Component<PresetsProps, DropdownState> {
 const mapStateToProps = (state: RootState): PresetsStateProps => ({
   mods: state.modList.mods,
   presets: state.presets.presets,
-  currentPreset: state.presets.presets[0],
+  currentPreset: state.presets.currentPreset,
   modDiffs: { deltaMods: undefined, deltaPreset: undefined },
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<PresetsAction>) => ({
-  createPreset: (id: string) => dispatch(createPreset(id)),
+  createPreset: (id: string, mods: Mod[]) => dispatch(createPreset(id, mods)),
   deletePreset: () => dispatch(deletePreset()),
-  updatePreset: () => dispatch(updatePreset()),
+  updatePreset: (mods: Mod[]) => dispatch(updatePreset(mods)),
   selectPreset: (id: string) => dispatch(selectPreset(id)),
 });
 
